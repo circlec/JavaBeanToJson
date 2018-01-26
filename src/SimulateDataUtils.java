@@ -4,7 +4,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Random;
 
 public class SimulateDataUtils {
@@ -19,6 +18,7 @@ public class SimulateDataUtils {
 		return obj;
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private static Object fillBeanData(JavaBeanConfig javaBeanConfig)
 			throws ClassNotFoundException, InstantiationException,
 			IllegalAccessException, NoSuchMethodException,
@@ -37,8 +37,8 @@ public class SimulateDataUtils {
 			String methodName = "set" + firstLetter.toUpperCase()
 					+ fieldName.substring(1, fieldName.length());
 			Method method = clazz.getMethod(methodName, type);
-			System.out.println(type);
-			System.out.println(genericType);
+//			System.out.println(type);
+//			System.out.println(genericType);
 			if (type.toString().equals("int")
 					|| type.toString().equals("class java.lang.Integer")) {
 				method.invoke(obj, new Random().nextInt(100));
@@ -70,7 +70,10 @@ public class SimulateDataUtils {
 					&& !genericType.toString().contains("java.util.ArrayList")) {
 				String innerClassName = type.toString().replace("class ", "");
 				JavaBeanConfig innerJavaBeanConfig = new JavaBeanConfig.Builder()
-						.className(innerClassName).build();
+						.className(innerClassName)
+						.specifyFields(javaBeanConfig.specifyFields())
+						.arrayLenght(javaBeanConfig.arrayLenght())
+						.build();
 				Object innerObject = fillBeanData(innerJavaBeanConfig);
 				method.invoke(obj, innerObject);
 			} else if (genericType.toString().contains("java.util.ArrayList")) {
@@ -79,59 +82,89 @@ public class SimulateDataUtils {
 			} else if (javaBeanConfig.classTName() != null
 					&& javaBeanConfig.classTName().length() > 0
 					&& genericType.toString().equals("T")) {
-				JavaBeanConfig innerJavaBeanConfig = new JavaBeanConfig.Builder()
-						.className(javaBeanConfig.classTName()).build();
-				Object innerObject = fillBeanData(innerJavaBeanConfig);
-				method.invoke(obj, innerObject);
+				if (javaBeanConfig.isArrayWithT()) {
+					setArrayData(obj, genericType, method, fieldName,
+							javaBeanConfig);
+				} else {
+					JavaBeanConfig innerJavaBeanConfig = new JavaBeanConfig.Builder()
+							.className(javaBeanConfig.classTName())
+							.specifyFields(javaBeanConfig.specifyFields())
+							.arrayLenght(javaBeanConfig.arrayLenght()).build();
+					Object innerObject = fillBeanData(innerJavaBeanConfig);
+					method.invoke(obj, innerObject);
+				}
 			}
 		}
 		return obj;
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private static void setArrayData(Object obj, Type genericType,
 			Method method, String fieldName, JavaBeanConfig javaBeanConfig)
 			throws IllegalAccessException, InvocationTargetException,
 			ClassNotFoundException, InstantiationException,
 			NoSuchMethodException {
 		String genericTypeString = genericType.toString();
-		String arrayGenericType = genericTypeString.substring(
-				genericTypeString.indexOf("<") + 1,
-				genericTypeString.indexOf(">"));
-		ArrayList list = new ArrayList();
-		for (int i = 0; i < javaBeanConfig.arrayLenght(); i++) {
-			if (arrayGenericType.equals("java.lang.String")) {
-				if (javaBeanConfig.specifyFields().containsKey(fieldName)) {
-					list.add(javaBeanConfig.specifyFields().get(fieldName));
-				} else {
-					list.add(String.valueOf(new Random().nextInt(100)));
-				}
-			} else if (arrayGenericType.equals("java.lang.Integer")) {
-				list.add(new Random().nextInt(100));
-			} else if (arrayGenericType.equals("java.lang.Long")) {
-				list.add(new Random().nextLong());
-			} else if (arrayGenericType.equals("java.lang.Double")) {
-				DecimalFormat df = new DecimalFormat(".00");
-				list.add(Double.valueOf(df.format(new Random().nextDouble())));
-			} else if (arrayGenericType.equals("java.lang.Float")) {
-				DecimalFormat df = new DecimalFormat(".00");
-				list.add(Float.valueOf(df.format(new Random().nextFloat())));
-			} else if (arrayGenericType.equals("java.lang.Boolean")) {
-				list.add(new Random().nextBoolean());
-			} else if (genericType.toString().contains("java.util.ArrayList")) {
-				String innerClassName = arrayGenericType;
+//		System.out.println("genericTypeString:" + genericTypeString);
+//		System.out.println("javaBeanConfig.arrayLenght():"
+//				+ javaBeanConfig.arrayLenght());
+		if (genericTypeString.equals("T")) {
+			ArrayList list = new ArrayList();
+			for (int i = 0; i < javaBeanConfig.arrayLenght(); i++) {
 				JavaBeanConfig innerJavaBeanConfig = new JavaBeanConfig.Builder()
-						.className(innerClassName).build();
-				Object innerObject = fillBeanData(innerJavaBeanConfig);
-				list.add(innerObject);
-			}else if (javaBeanConfig.classTName() != null
-					&& javaBeanConfig.classTName().length() > 0
-					&& genericType.toString().equals("T")) {
-				JavaBeanConfig innerJavaBeanConfig = new JavaBeanConfig.Builder()
+						.arrayLenght(javaBeanConfig.arrayLenght())
+						.specifyFields(javaBeanConfig.specifyFields())
 						.className(javaBeanConfig.classTName()).build();
 				Object innerObject = fillBeanData(innerJavaBeanConfig);
-				method.invoke(obj, innerObject);
+				list.add(innerObject);
+				method.invoke(obj, list);
 			}
+		} else {
+			String arrayGenericType = genericTypeString.substring(
+					genericTypeString.indexOf("<") + 1,
+					genericTypeString.indexOf(">"));
+			ArrayList list = new ArrayList();
+			for (int i = 0; i < javaBeanConfig.arrayLenght(); i++) {
+				if (arrayGenericType.equals("java.lang.String")) {
+					if (javaBeanConfig.specifyFields().containsKey(fieldName)) {
+						list.add(javaBeanConfig.specifyFields().get(fieldName));
+					} else {
+						list.add(String.valueOf(new Random().nextInt(100)));
+					}
+				} else if (arrayGenericType.equals("java.lang.Integer")) {
+					list.add(new Random().nextInt(100));
+				} else if (arrayGenericType.equals("java.lang.Long")) {
+					list.add(new Random().nextLong());
+				} else if (arrayGenericType.equals("java.lang.Double")) {
+					DecimalFormat df = new DecimalFormat(".00");
+					list.add(Double.valueOf(df.format(new Random().nextDouble())));
+				} else if (arrayGenericType.equals("java.lang.Float")) {
+					DecimalFormat df = new DecimalFormat(".00");
+					list.add(Float.valueOf(df.format(new Random().nextFloat())));
+				} else if (arrayGenericType.equals("java.lang.Boolean")) {
+					list.add(new Random().nextBoolean());
+				} else if (genericType.toString().contains(
+						"java.util.ArrayList")) {
+					String innerClassName = arrayGenericType;
+					JavaBeanConfig innerJavaBeanConfig = new JavaBeanConfig.Builder()
+							.arrayLenght(javaBeanConfig.arrayLenght())
+							.specifyFields(javaBeanConfig.specifyFields())
+							.className(innerClassName).build();
+					Object innerObject = fillBeanData(innerJavaBeanConfig);
+					list.add(innerObject);
+				} else if (javaBeanConfig.classTName() != null
+						&& javaBeanConfig.classTName().length() > 0
+						&& genericType.toString().equals("T")) {
+					JavaBeanConfig innerJavaBeanConfig = new JavaBeanConfig.Builder()
+							.arrayLenght(javaBeanConfig.arrayLenght())
+							.specifyFields(javaBeanConfig.specifyFields())
+							.className(javaBeanConfig.classTName()).build();
+					Object innerObject = fillBeanData(innerJavaBeanConfig);
+					method.invoke(obj, innerObject);
+				}
+			}
+			method.invoke(obj, list);
 		}
-		method.invoke(obj, list);
+
 	}
 }
