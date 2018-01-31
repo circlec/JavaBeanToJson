@@ -28,7 +28,8 @@ public class SimulateDataUtils {
 		Field[] fields = clazz.getDeclaredFields();
 		for (Field field : fields) {
 			String fieldName = field.getName();
-			if (fieldName.equals("serialVersionUID")) {
+			if (fieldName.equals("serialVersionUID")
+					||fieldName.equals("CREATOR")) {
 				break;
 			}
 			Class<?> type = field.getType();
