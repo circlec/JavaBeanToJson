@@ -11,7 +11,7 @@ import com.google.gson.Gson;
 
 public class JavaBeanToJsonWithSimulatedData {
 
-	public static String dirPath_desktop = "C:\\Users\\think_admin\\Desktop\\";
+	public static String dirPath_desktop = "dirPath_desktop";
 	public static String dirPath_E = "E:\\";
 	public static HashMap<String,String> sp = new HashMap<>();
 	@SuppressWarnings("unchecked")
