@@ -1,10 +1,12 @@
+package com.example.demo.simulatedata;
+
 import java.util.HashMap;
 
 public final class JavaBeanConfig {
 	private final String className;
 	private final String classTName;
 	private final int arrayLenght;
-	private final HashMap<String, String> specifyFields;
+	private final HashMap<String, Object> specifyFields;
 	private boolean isArrayWithT;
 
 	private JavaBeanConfig(Builder builder) {
@@ -27,7 +29,7 @@ public final class JavaBeanConfig {
 		return arrayLenght;
 	}
 
-	public HashMap<String, String> specifyFields() {
+	public HashMap<String, Object> specifyFields() {
 		return specifyFields;
 	}
 	
@@ -39,7 +41,7 @@ public final class JavaBeanConfig {
 		private String className;
 		private String classTName;
 		private int arrayLenght;
-		private HashMap<String, String> specifyFields;
+		private HashMap<String, Object> specifyFields;
 		private boolean isArrayWithT;
 
 		public Builder() {
@@ -65,7 +67,7 @@ public final class JavaBeanConfig {
 			return this;
 		}
 
-		public Builder specifyFields(HashMap<String, String> specifyFields) {
+		public Builder specifyFields(HashMap<String, Object> specifyFields) {
 			this.specifyFields = specifyFields;
 			return this;
 		}
