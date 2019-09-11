@@ -25,6 +25,23 @@ public class SimulateDataUtils {
             throws ClassNotFoundException, InstantiationException,
             IllegalAccessException, NoSuchMethodException,
             InvocationTargetException {
+
+        if(javaBeanConfig.className()!=null&&javaBeanConfig.className().length()>0 &&javaBeanConfig.className().equals("java.lang.Boolean")){
+            return new Random().nextBoolean();
+        }else if(javaBeanConfig.className()!=null&&javaBeanConfig.className().length()>0 &&javaBeanConfig.className().equals("java.lang.Integer")){
+            return new Random().nextInt(100);
+        }else if(javaBeanConfig.className()!=null&&javaBeanConfig.className().length()>0 &&javaBeanConfig.className().equals("java.lang.String")){
+            return  String.valueOf(new Random().nextInt(100));
+        }else if(javaBeanConfig.className()!=null&&javaBeanConfig.className().length()>0 &&javaBeanConfig.className().equals("java.lang.Double")){
+            DecimalFormat df = new DecimalFormat(".00");
+            return  Double.valueOf(df.format(new Random().nextDouble()));
+        }else if(javaBeanConfig.className()!=null&&javaBeanConfig.className().length()>0 &&javaBeanConfig.className().equals("java.lang.Float")){
+            DecimalFormat df = new DecimalFormat(".00");
+            return  Float.valueOf(df.format(new Random().nextFloat()));
+        }else if(javaBeanConfig.className()!=null&&javaBeanConfig.className().length()>0 &&javaBeanConfig.className().equals("java.lang.Long")){
+            return new Random().nextLong();
+        }
+
         Class clazz = Class.forName(javaBeanConfig.className());
         Object obj = clazz.newInstance();
         Field[] fields = clazz.getDeclaredFields();
@@ -111,7 +128,24 @@ public class SimulateDataUtils {
                 if (javaBeanConfig.isArrayWithT()) {
                     setArrayData(obj, genericType, method, fieldName,
                             javaBeanConfig);
-                } else {
+                }else if(javaBeanConfig.classTName().equals("java.lang.String")){
+                    method.invoke(obj,
+                            String.valueOf(new Random().nextInt(100)));
+                } else if(javaBeanConfig.classTName().equals("java.lang.Integer")){
+                    method.invoke(obj, new Random().nextInt(100));
+                }else if(javaBeanConfig.classTName().equals("java.lang.Double")){
+                    DecimalFormat df = new DecimalFormat(".00");
+                    method.invoke(obj,
+                            Double.valueOf(df.format(new Random().nextDouble())));
+                }else if(javaBeanConfig.classTName().equals("java.lang.Float")){
+                    DecimalFormat df = new DecimalFormat(".00");
+                    method.invoke(obj,
+                            Float.valueOf(df.format(new Random().nextFloat())));
+                }else if(javaBeanConfig.classTName().equals("java.lang.Boolean")){
+                    method.invoke(obj, new Random().nextBoolean());
+                }else if(javaBeanConfig.classTName().equals("java.lang.Long")){
+                    method.invoke(obj, new Random().nextLong());
+                }else {
                     JavaBeanConfig innerJavaBeanConfig = new JavaBeanConfig.Builder()
                             .className(javaBeanConfig.classTName())
                             .specifyFields(javaBeanConfig.specifyFields())
