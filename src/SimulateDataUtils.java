@@ -49,7 +49,7 @@ public class SimulateDataUtils {
             String fieldName = field.getName();
             if (fieldName.equals("serialVersionUID")
                     || fieldName.equals("CREATOR")) {
-                break;
+                continue;
             }
             Class<?> type = field.getType();
             Type genericType = field.getGenericType();
