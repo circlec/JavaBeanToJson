@@ -26,19 +26,19 @@ public class SimulateDataUtils {
             IllegalAccessException, NoSuchMethodException,
             InvocationTargetException {
 
-        if(javaBeanConfig.className()!=null&&javaBeanConfig.className().length()>0 &&javaBeanConfig.className().equals("java.lang.Boolean")){
+        if (javaBeanConfig.className() != null && javaBeanConfig.className().length() > 0 && javaBeanConfig.className().equals("java.lang.Boolean")) {
             return new Random().nextBoolean();
-        }else if(javaBeanConfig.className()!=null&&javaBeanConfig.className().length()>0 &&javaBeanConfig.className().equals("java.lang.Integer")){
+        } else if (javaBeanConfig.className() != null && javaBeanConfig.className().length() > 0 && javaBeanConfig.className().equals("java.lang.Integer")) {
             return new Random().nextInt(100);
-        }else if(javaBeanConfig.className()!=null&&javaBeanConfig.className().length()>0 &&javaBeanConfig.className().equals("java.lang.String")){
-            return  String.valueOf(new Random().nextInt(100));
-        }else if(javaBeanConfig.className()!=null&&javaBeanConfig.className().length()>0 &&javaBeanConfig.className().equals("java.lang.Double")){
+        } else if (javaBeanConfig.className() != null && javaBeanConfig.className().length() > 0 && javaBeanConfig.className().equals("java.lang.String")) {
+            return String.valueOf(new Random().nextInt(100));
+        } else if (javaBeanConfig.className() != null && javaBeanConfig.className().length() > 0 && javaBeanConfig.className().equals("java.lang.Double")) {
             DecimalFormat df = new DecimalFormat(".00");
-            return  Double.valueOf(df.format(new Random().nextDouble()));
-        }else if(javaBeanConfig.className()!=null&&javaBeanConfig.className().length()>0 &&javaBeanConfig.className().equals("java.lang.Float")){
+            return Double.valueOf(df.format(new Random().nextDouble()));
+        } else if (javaBeanConfig.className() != null && javaBeanConfig.className().length() > 0 && javaBeanConfig.className().equals("java.lang.Float")) {
             DecimalFormat df = new DecimalFormat(".00");
-            return  Float.valueOf(df.format(new Random().nextFloat()));
-        }else if(javaBeanConfig.className()!=null&&javaBeanConfig.className().length()>0 &&javaBeanConfig.className().equals("java.lang.Long")){
+            return Float.valueOf(df.format(new Random().nextFloat()));
+        } else if (javaBeanConfig.className() != null && javaBeanConfig.className().length() > 0 && javaBeanConfig.className().equals("java.lang.Long")) {
             return new Random().nextLong();
         }
 
@@ -48,11 +48,15 @@ public class SimulateDataUtils {
         for (Field field : fields) {
             String fieldName = field.getName();
             if (fieldName.equals("serialVersionUID")
-                    || fieldName.equals("CREATOR")) {
+                    || fieldName.equals("CREATOR")
+                    || fieldName.equals("SUCCESS")
+                    || fieldName.equals("FAIL")
+                    || fieldName.equals("$change")) {
                 continue;
             }
             Class<?> type = field.getType();
             Type genericType = field.getGenericType();
+            System.out.println(genericType);
             String firstLetter = fieldName.substring(0, 1);
             String methodName = "set" + firstLetter.toUpperCase()
                     + fieldName.substring(1);
@@ -110,7 +114,7 @@ public class SimulateDataUtils {
                     method.invoke(obj, new Random().nextLong());
                 }
             } else if (genericType.toString().contains("$")
-                    && !genericType.toString().contains("java.util.ArrayList")) {
+                    && !genericType.toString().contains("java.util.ArrayList") && !genericType.toString().contains("java.util.List")) {
                 String innerClassName = type.toString().replace("class ", "");
                 JavaBeanConfig innerJavaBeanConfig = new JavaBeanConfig.Builder()
                         .className(innerClassName)
@@ -119,7 +123,7 @@ public class SimulateDataUtils {
                         .build();
                 Object innerObject = fillBeanData(innerJavaBeanConfig);
                 method.invoke(obj, innerObject);
-            } else if (genericType.toString().contains("java.util.ArrayList")) {
+            } else if (genericType.toString().contains("java.util.ArrayList") || genericType.toString().contains("java.util.List")) {
                 setArrayData(obj, genericType, method, fieldName,
                         javaBeanConfig);
             } else if (javaBeanConfig.classTName() != null
@@ -128,24 +132,24 @@ public class SimulateDataUtils {
                 if (javaBeanConfig.isArrayWithT()) {
                     setArrayData(obj, genericType, method, fieldName,
                             javaBeanConfig);
-                }else if(javaBeanConfig.classTName().equals("java.lang.String")){
+                } else if (javaBeanConfig.classTName().equals("java.lang.String")) {
                     method.invoke(obj,
                             String.valueOf(new Random().nextInt(100)));
-                } else if(javaBeanConfig.classTName().equals("java.lang.Integer")){
+                } else if (javaBeanConfig.classTName().equals("java.lang.Integer")) {
                     method.invoke(obj, new Random().nextInt(100));
-                }else if(javaBeanConfig.classTName().equals("java.lang.Double")){
+                } else if (javaBeanConfig.classTName().equals("java.lang.Double")) {
                     DecimalFormat df = new DecimalFormat(".00");
                     method.invoke(obj,
                             Double.valueOf(df.format(new Random().nextDouble())));
-                }else if(javaBeanConfig.classTName().equals("java.lang.Float")){
+                } else if (javaBeanConfig.classTName().equals("java.lang.Float")) {
                     DecimalFormat df = new DecimalFormat(".00");
                     method.invoke(obj,
                             Float.valueOf(df.format(new Random().nextFloat())));
-                }else if(javaBeanConfig.classTName().equals("java.lang.Boolean")){
+                } else if (javaBeanConfig.classTName().equals("java.lang.Boolean")) {
                     method.invoke(obj, new Random().nextBoolean());
-                }else if(javaBeanConfig.classTName().equals("java.lang.Long")){
+                } else if (javaBeanConfig.classTName().equals("java.lang.Long")) {
                     method.invoke(obj, new Random().nextLong());
-                }else {
+                } else {
                     JavaBeanConfig innerJavaBeanConfig = new JavaBeanConfig.Builder()
                             .className(javaBeanConfig.classTName())
                             .specifyFields(javaBeanConfig.specifyFields())
@@ -222,7 +226,8 @@ public class SimulateDataUtils {
                         list.add(new Random().nextBoolean());
                     }
                 } else if (genericType.toString().contains(
-                        "java.util.ArrayList")) {
+                        "java.util.ArrayList") || genericType.toString().contains(
+                        "java.util.List")) {
                     String innerClassName = arrayGenericType;
                     JavaBeanConfig innerJavaBeanConfig = new JavaBeanConfig.Builder()
                             .arrayLenght(javaBeanConfig.arrayLenght())
@@ -237,6 +242,13 @@ public class SimulateDataUtils {
                             .arrayLenght(javaBeanConfig.arrayLenght())
                             .specifyFields(javaBeanConfig.specifyFields())
                             .className(javaBeanConfig.classTName()).build();
+                    Object innerObject = fillBeanData(innerJavaBeanConfig);
+                    method.invoke(obj, innerObject);
+                } else {
+                    JavaBeanConfig innerJavaBeanConfig = new JavaBeanConfig.Builder()
+                            .className(arrayGenericType)
+                            .specifyFields(javaBeanConfig.specifyFields())
+                            .arrayLenght(javaBeanConfig.arrayLenght()).build();
                     Object innerObject = fillBeanData(innerJavaBeanConfig);
                     method.invoke(obj, innerObject);
                 }
